@@ -58,6 +58,8 @@ try {
 
     const database=client.db('mediCampDb');
     const usersCollection= database.collection('user');
+    const campCollection= database.collection('addcamp');
+    const participantCollection = database.collection('participants');
     
 
     const verifyAdmin = async (req, res, next) => {
@@ -71,9 +73,63 @@ try {
     }
 
 
+    app.get('/allcamp', async(req,res)=>{
+            const cursor =campCollection.find();
+            const dbresult= await cursor.toArray();
+            res.send(dbresult);
+    })
+
+    app.get('/camp/:campId', async (req, res) => {
+        const { campId } = req.params;
+        try {
+            const result = await campCollection.findOne({ _id: new ObjectId(campId) });
+            if (!result) {
+            return res.status(404).send({ message: 'Camp not found' });
+            }
+            res.send(result);
+        } catch (error) {
+            res.status(500).send({ message: 'Server error', error });
+          }
+    });
+
+    app.post('/addcamp', async(req,res)=>{
+      const campData = req.body;
+
+      const result = await campCollection.insertOne(campData)
+      res.send(result)
+
+    })
 
 
+    app.post('/participants', async (req, res) => {
+        const participantData = req.body;
 
+              participantData.joinedAt = new Date().toISOString();
+
+              try {
+                const result = await participantCollection.insertOne(participantData);
+                res.send(result);
+              } catch (error) {
+                  res.status(500).send({ message: 'Failed to register participant', error });
+              }
+    });
+
+
+    app.patch('/camp/:campId/increment-participant', async (req, res) => {
+        const { campId } = req.params;
+        try {
+          const result = await campCollection.updateOne(
+          { _id: new ObjectId(campId) },
+          { $inc: { participantCount: 1 } }
+          );
+          if (result.modifiedCount === 0) {
+            return res.status(404).send({ message: 'Camp not found or not updated' });
+          }
+          res.send({ message: 'Participant count incremented' });
+        } catch (error) {
+          res.status(500).send({ message: 'Failed to update participant count', error });
+        }
+    });
 
     
      // save or update a users info in db
@@ -105,8 +161,46 @@ try {
     })
 
 
+    app.get('/mycamps', verifyFireBaseToken, async (req, res) => {
+      const userEmail = req.query.email;
+      try {
+        const result = await campCollection.find({ email: userEmail }).toArray();
+        res.send(result);
+      } catch (error) {
+        res.status(500).send({ message: 'Failed to fetch camps', error });
+      }
+    });
 
+    app.patch('/update-camp/:campId', verifyFireBaseToken, async (req, res) => {
+      const { campId } = req.params;
+      const updateData = req.body;
+      delete updateData._id;
+      try {
+        const result = await campCollection.updateOne(
+          { _id: new ObjectId(campId) },
+          { $set: updateData }
+        );
+        if (result.modifiedCount === 0) {
+        return res.status(404).send({ message: 'Camp not found or unchanged' });
+        }
+        res.send({ message: 'Camp updated successfully' });
+      } catch (error) {
+        res.status(500).send({ message: 'Failed to update camp', error });
+      }
+    });
 
+    app.delete('/delete-camp/:campId', verifyFireBaseToken, async (req, res) => {
+      const { campId } = req.params;
+      try {
+        const result = await campCollection.deleteOne({ _id: new ObjectId(campId) });
+        if (result.deletedCount === 0) {
+          return res.status(404).send({ message: 'Camp not found or already deleted' });
+        }
+        res.send({ message: 'Camp deleted successfully' });
+      } catch (error) {
+        res.status(500).send({ message: 'Failed to delete camp', error });
+      }
+    });
 
 
 

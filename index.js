@@ -87,14 +87,20 @@ try {
     }
 
     //  payment intent make
-    app.get('/user/:email', async (req, res) => {
+    app.get('/user/:email', verifyFireBaseToken,async (req, res) => {
     const { email } = req.params;
+    if (email !== req.decoded.email) {
+        return res.status(403).message({ message: 'forbidden access' })
+    }
     const user = await usersCollection.findOne({ email });
     res.send(user);
     });
 
-    app.patch('/user/:email', async (req, res) => {
+    app.patch('/user/:email', verifyFireBaseToken,async (req, res) => {
     const { email } = req.params;
+    if (email !== req.decoded.email) {
+        return res.status(403).message({ message: 'forbidden access' })
+    }
     const { name, image, phone } = req.body;
     const result = await usersCollection.updateOne(
     { email: email },

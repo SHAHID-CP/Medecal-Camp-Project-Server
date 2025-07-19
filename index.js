@@ -119,7 +119,7 @@ try {
             res.send(dbresult);
     })
 
-    app.get('/camp/:campId', async (req, res) => {
+    app.get('/camp/:campId', verifyFireBaseToken,async (req, res) => {
         const { campId } = req.params;
         try {
             const result = await campCollection.findOne({ _id: new ObjectId(campId) });
@@ -132,7 +132,7 @@ try {
           }
     });
 
-    app.post('/addcamp', async(req,res)=>{
+    app.post('/addcamp', verifyFireBaseToken,verifyAdmin,async(req,res)=>{
       const campData = req.body;
 
       const result = await campCollection.insertOne(campData)

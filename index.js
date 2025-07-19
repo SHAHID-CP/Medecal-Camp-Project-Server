@@ -196,11 +196,9 @@ try {
     })
 
     // get a user's role
-    app.get('/user/role/:email', verifyFireBaseToken,async (req, res) => {
+    app.get('/user/role/:email', async (req, res) => {
       const email = req.params.email
-      if (email !== req.decoded.email) {
-            return res.status(403).message({ message: 'forbidden access' })
-      }
+      
       const result = await usersCollection.findOne({ email })
       if (!result) return res.status(404).send({ message: 'User Not Found.' })
       res.send({ role: result?.role })
@@ -329,7 +327,6 @@ try {
 
     app.get('/feedbacks', verifyFireBaseToken,async (req, res) => {
     try {
-      const feedbackCollection = database.collection('feedbacks');
       const result = await feedbackCollection.find().toArray();
       res.send(result);
     } catch (error) {

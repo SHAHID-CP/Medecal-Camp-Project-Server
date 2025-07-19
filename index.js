@@ -29,6 +29,7 @@ admin.initializeApp({
 });
 
 
+
 const verifyFireBaseToken = async (req, res, next) => {
   const authHeader = req.headers?.authorization;
 
@@ -70,6 +71,16 @@ try {
             const query = { email }
             const user = await usersCollection.findOne(query);
             if (!user || user.role !== 'admin') {
+                return res.status(403).send({ message: 'forbidden access' })
+            }
+            next();
+    }
+
+    const verifyPerticipant = async (req, res, next) => {
+            const email = req.decoded.email;
+            const query = { email }
+            const user = await usersCollection.findOne(query);
+            if (!user || user.role !== 'participent') {
                 return res.status(403).send({ message: 'forbidden access' })
             }
             next();

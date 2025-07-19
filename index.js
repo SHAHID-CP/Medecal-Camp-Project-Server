@@ -141,9 +141,12 @@ try {
     })
 
 
-    app.post('/participants', async (req, res) => {
+    app.post('/participants', verifyFireBaseToken, async (req, res) => {
         const participantData = req.body;
-
+        const email=participantData?.participantEmail
+        if (email !== req.decoded.email) {
+            return res.status(403).message({ message: 'forbidden access' })
+        }
               participantData.joinedAt = new Date().toISOString();
 
               try {
@@ -155,7 +158,7 @@ try {
     });
 
 
-    app.patch('/camp/:campId/increment-participant', async (req, res) => {
+    app.patch('/camp/:campId/increment-participant', verifyFireBaseToken,async (req, res) => {
         const { campId } = req.params;
         try {
           const result = await campCollection.updateOne(
@@ -193,15 +196,18 @@ try {
     })
 
     // get a user's role
-    app.get('/user/role/:email', async (req, res) => {
+    app.get('/user/role/:email', verifyFireBaseToken,async (req, res) => {
       const email = req.params.email
+      if (email !== req.decoded.email) {
+            return res.status(403).message({ message: 'forbidden access' })
+      }
       const result = await usersCollection.findOne({ email })
       if (!result) return res.status(404).send({ message: 'User Not Found.' })
       res.send({ role: result?.role })
     })
 
 
-    app.get('/mycamps', verifyFireBaseToken, async (req, res) => {
+    app.get('/mycamps', verifyFireBaseToken, verifyAdmin,async (req, res) => {
       const userEmail = req.query.email;
       try {
         const result = await campCollection.find({ email: userEmail }).toArray();
@@ -211,7 +217,7 @@ try {
       }
     });
 
-    app.patch('/update-camp/:campId', verifyFireBaseToken, async (req, res) => {
+    app.patch('/update-camp/:campId', verifyFireBaseToken, verifyAdmin,async (req, res) => {
       const { campId } = req.params;
       const updateData = req.body;
       delete updateData._id;
@@ -229,7 +235,7 @@ try {
       }
     });
 
-    app.delete('/delete-camp/:campId', verifyFireBaseToken, async (req, res) => {
+    app.delete('/delete-camp/:campId', verifyFireBaseToken, verifyAdmin,async (req, res) => {
       const { campId } = req.params;
       try {
         const result = await campCollection.deleteOne({ _id: new ObjectId(campId) });
@@ -243,7 +249,7 @@ try {
     });
 
 
-    app.get('/all-participants', verifyFireBaseToken, async (req, res) => {
+  app.get('/all-participants', verifyFireBaseToken, async (req, res) => {
   const email = req.decoded?.email;
 
   //  Check if the user is admin
@@ -265,7 +271,7 @@ try {
   }
  });
 
- app.delete('/cancel-camp/:id', verifyFireBaseToken, async (req, res) => {
+ app.delete('/cancel-camp/:id', verifyFireBaseToken, verifyAdmin,async (req, res) => {
   const participantId = req.params.id;
 
   try {
@@ -309,7 +315,7 @@ try {
 
     // participent db strat
 
-    app.get('/registered-camps', verifyFireBaseToken, async (req, res) => {
+    app.get('/registered-camps', verifyFireBaseToken, verifyPerticipant,async (req, res) => {
     const email = req.decoded.email;
         try {
           const result = await participantCollection
@@ -321,7 +327,7 @@ try {
         }
     });
 
-    app.get('/feedbacks', async (req, res) => {
+    app.get('/feedbacks', verifyFireBaseToken,async (req, res) => {
     try {
       const feedbackCollection = database.collection('feedbacks');
       const result = await feedbackCollection.find().toArray();
@@ -332,7 +338,7 @@ try {
     });
 
 
-    app.post('/feedback', verifyFireBaseToken, async (req, res) => {
+    app.post('/feedback', verifyFireBaseToken, verifyPerticipant,async (req, res) => {
       const { participantId, comment, rating,participantName } = req.body;
 
       try {
@@ -351,7 +357,7 @@ try {
       }
     });
 
-    app.get('/chkfeedback', verifyFireBaseToken, async (req, res) => {
+    app.get('/chkfeedback', verifyFireBaseToken, verifyPerticipant,async (req, res) => {
         const participantId = req.query.participantId;
 
         try {
@@ -366,7 +372,7 @@ try {
         }
     });
 
-    app.delete('/cancel-registration/:id', verifyFireBaseToken, async (req, res) => {
+    app.delete('/cancel-registration/:id', verifyFireBaseToken, verifyPerticipant,async (req, res) => {
       const { id } = req.params;
       try {
           const result = await participantCollection.deleteOne({
@@ -428,7 +434,7 @@ try {
   });
 
 
-  app.post('/confirm-payment', verifyFireBaseToken, async (req, res) => {
+  app.post('/confirm-payment', verifyFireBaseToken, verifyPerticipant,async (req, res) => {
   const { paymentIntentId, campId, participantId } = req.body;
 
   if (!paymentIntentId || !campId || !participantId) {
@@ -483,7 +489,7 @@ try {
   }
 });
 
-app.get('/payment-history', verifyFireBaseToken, async (req, res) => {
+app.get('/payment-history', verifyFireBaseToken, verifyPerticipant,async (req, res) => {
   const userEmail = req.decoded.email;
 
   try {

@@ -56,7 +56,7 @@ const verifyFireBaseToken = async (req, res, next) => {
 
 async function run() {
 try {
-    await client.connect();
+    
 
     const database=client.db('mediCampDb');
     const usersCollection= database.collection('user');
@@ -505,14 +505,6 @@ app.get('/payment-history', verifyFireBaseToken, verifyPerticipant,async (req, r
 
 
 
-
-
-
-
-
-    // Send a ping to confirm a successful connection
-    await client.db("admin").command({ ping: 1 });
-    console.log("Pinged your deployment. You successfully connected to MongoDB!");
 
     } finally {
 

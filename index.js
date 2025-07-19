@@ -76,7 +76,21 @@ try {
     }
 
     //  payment intent make
-    
+    app.get('/user/:email', async (req, res) => {
+    const { email } = req.params;
+    const user = await usersCollection.findOne({ email });
+    res.send(user);
+    });
+
+    app.patch('/user/:email', async (req, res) => {
+    const { email } = req.params;
+    const { name, image, phone } = req.body;
+    const result = await usersCollection.updateOne(
+    { email: email },
+    { $set: { name, image, phone } }
+    );
+    res.send(result);
+    });
 
 
 
@@ -215,7 +229,7 @@ try {
     app.get('/all-participants', verifyFireBaseToken, async (req, res) => {
   const email = req.decoded?.email;
 
-  // 🔍 Check if the user is admin
+  //  Check if the user is admin
   const adminUser = await usersCollection.findOne({ email });
   if (!adminUser || adminUser.role !== 'admin') {
     return res.status(403).send({ message: 'Forbidden: Admins only' });
@@ -467,6 +481,10 @@ app.get('/payment-history', verifyFireBaseToken, async (req, res) => {
     res.status(500).send({ message: 'Failed to fetch payment history', error });
   }
 });
+
+
+
+
 
 
 

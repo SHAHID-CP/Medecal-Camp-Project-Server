@@ -204,7 +204,7 @@ try {
       res.send({ role: result?.role })
     })
 
-
+    // admin collection
     app.get('/mycamps', verifyFireBaseToken, verifyAdmin,async (req, res) => {
       const userEmail = req.query.email;
       try {
@@ -215,6 +215,7 @@ try {
       }
     });
 
+    // admin collection modify
     app.patch('/update-camp/:campId', verifyFireBaseToken, verifyAdmin,async (req, res) => {
       const { campId } = req.params;
       const updateData = req.body;

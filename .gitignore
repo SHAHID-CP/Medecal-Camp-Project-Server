@@ -1,3 +1,4 @@
 .env
 node_modules
 my-medi-camp-firebase-adminsdk-fbsvc-2fae8884c4.json
+.vercel

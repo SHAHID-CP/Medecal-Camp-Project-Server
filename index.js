@@ -326,7 +326,7 @@ try {
         }
     });
 
-    app.get('/feedbacks', verifyFireBaseToken,async (req, res) => {
+    app.get('/feedbacks',async (req, res) => {
     try {
       const result = await feedbackCollection.find().toArray();
       res.send(result);

@@ -101,10 +101,10 @@ try {
     if (email !== req.decoded.email) {
         return res.status(403).message({ message: 'forbidden access' })
     }
-    const { name, image, phone } = req.body;
+    const { name, image, phone,address } = req.body;
     const result = await usersCollection.updateOne(
     { email: email },
-    { $set: { name, image, phone } }
+    { $set: { name, image, phone, address } }
     );
     res.send(result);
     });
